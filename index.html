@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Vault | Access</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #1e1e1e; padding: 30px; border-radius: 10px; width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #2a2a2a; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .toggle-link { margin-top: 15px; font-size: 13px; color: #007bff; cursor: pointer; display: block; }
+        #status { font-size: 13px; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="formTitle">Login</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button id="mainBtn" onclick="handleAuth()">Access Vault</button>
+        <span class="toggle-link" id="toggleLink" onclick="toggleForm()">Need an account? Sign Up</span>
+        <p id="status"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-AsF-EtsHFRWnMjc3LQSD2UqaNxM2vXc",
+            authDomain: "apex-vault-3f235.firebaseapp.com",
+            projectId: "apex-vault-3f235",
+            storageBucket: "apex-vault-3f235.firebasestorage.app",
+            messagingSenderId: "526402607684",
+            appId: "1:526402607684:web:6b32fea6ee28a7df0d3a11"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        let isLoginMode = true;
+
+        function toggleForm() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('formTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('mainBtn').innerText = isLoginMode ? "Access Vault" : "Create Account";
+            document.getElementById('toggleLink').innerText = isLoginMode ? "Need an account? Sign Up" : "Have an account? Login";
+        }
+
+        function handleAuth() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const status = document.getElementById('status');
+
+            if(!email || !pass) return status.innerText = "Fill all fields";
+            status.innerText = "Verifying...";
+
+            const auth = firebase.auth();
+            const action = isLoginMode ? auth.signInWithEmailAndPassword(email, pass) : auth.createUserWithEmailAndPassword(email, pass);
+
+            action.then(() => {
+                // This is the strong redirect
+                window.location.replace("dashboard.html");
+            }).catch(err => {
+                status.innerText = err.message;
+            });
+        }
+    </script>
+</body>
+</html>
