@@ -3,34 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Vault | Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Apex Vault | Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
-        .nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
+        body { font-family: 'Inter', sans-serif; background: #0b0e11; color: white; margin: 0; padding: 20px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
         .nav b { font-size: 20px; color: #007bff; letter-spacing: 1px; }
-        #userEmail { font-size: 12px; color: #888; margin-bottom: 20px; display: block; }
-        .card { background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #0056b3; }
-        .item { background: #1a1a1a; padding: 18px; border-radius: 12px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #007bff; animation: fadeIn 0.4s ease-out; }
-        .fa-trash { color: #ff4d4d; cursor: pointer; padding: 5px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: #1a1d21; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; background: #2b2f36; color: white; border: 1px solid #444; box-sizing: border-box; outline: none; }
+        .search-bar { background: #1a1d21; border: 1px solid #333; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; }
+        .search-bar input { background: transparent; border: none; color: white; width: 100%; outline: none; padding-left: 10px; }
+        button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #444; }
+        .item { background: #1a1d21; padding: 15px; border-radius: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #007bff; }
+        .item-info b { display: block; font-size: 15px; color: #eee; }
+        .item-info small { color: #666; font-size: 11px; }
+        .actions a { color: #00d4ff; text-decoration: none; margin-right: 15px; font-size: 18px; }
+        .fa-trash { color: #ff4d4d; cursor: pointer; }
+        #status { font-size: 12px; color: #00d4ff; text-align: center; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <b>APEX VAULT</b>
+        <b>APEX VAULT PRO</b>
         <i class="fa-solid fa-right-from-bracket" onclick="logout()" style="cursor:pointer"></i>
     </div>
 
-    <span id="userEmail"></span>
+    <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search your vault..." onkeyup="searchDocs()">
+    </div>
 
     <div class="card">
-        <input type="text" id="docName" placeholder="Document Name/Reference">
-        <button onclick="save()">Secure to Cloud</button>
+        <input type="text" id="docName" placeholder="Document Name (e.g. FUTA EWM Notes)">
+        <input type="file" id="filePicker" accept=".pdf,image/*">
+        <button id="uploadBtn" onclick="uploadToDatabase()">Secure to Cloud</button>
+        <div id="status">Converting & Uploading...</div>
     </div>
 
     <div id="records"></div>
@@ -45,62 +54,92 @@
             authDomain: "apex-vault-3f235.firebaseapp.com",
             databaseURL: "https://apex-vault-3f235-default-rtdb.firebaseio.com",
             projectId: "apex-vault-3f235",
-            storageBucket: "apex-vault-3f235.firebasestorage.app",
+            storageBucket: "apex-vault-3f235.appspot.com",
             messagingSenderId: "526402607684",
             appId: "1:526402607684:web:6b32fea6ee28a7df0d3a11"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let currentUser = null;
+
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('userEmail').innerText = "Secured: " + user.email;
+                currentUser = user;
                 load(user.uid);
             } else {
                 window.location.replace("index.html");
             }
         });
 
-        function save() {
+        function uploadToDatabase() {
+            const file = document.getElementById('filePicker').files[0];
             const name = document.getElementById('docName').value;
-            const user = firebase.auth().currentUser;
-            if(!name || !user) return;
-            db.ref('users/'+user.uid+'/docs').push({ 
-                name: name, 
-                date: new Date().toLocaleString() 
-            });
-            document.getElementById('docName').value = "";
+            const btn = document.getElementById('uploadBtn');
+            const status = document.getElementById('status');
+
+            if (!file || !name) return alert("Please add a name and select a file!");
+            if (file.size > 5 * 1024 * 1024) return alert("File too large! Keep it under 5MB.");
+
+            btn.disabled = true;
+            status.style.display = "block";
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                const base64Data = reader.result;
+                db.ref('users/' + currentUser.uid + '/docs').push({
+                    name: name,
+                    fileData: base64Data,
+                    date: new Date().toLocaleString()
+                }).then(() => {
+                    btn.disabled = false;
+                    status.style.display = "none";
+                    document.getElementById('docName').value = "";
+                    document.getElementById('filePicker').value = "";
+                });
+            };
         }
 
         function load(uid) {
-            db.ref('users/'+uid+'/docs').on('value', snap => {
+            db.ref('users/' + uid + '/docs').on('value', snap => {
                 const data = snap.val();
                 const list = document.getElementById('records');
                 list.innerHTML = "";
-                for(let id in data) {
+                for (let id in data) {
                     list.innerHTML += `
-                        <div class="item">
-                            <div>
-                                <span style="display:block; font-weight:bold">📄 ${data[id].name}</span>
-                                <small style="color:#666; font-size:10px">${data[id].date}</small>
+                        <div class="item" data-name="${data[id].name.toLowerCase()}">
+                            <div class="item-info">
+                                <b>📄 ${data[id].name}</b>
+                                <small>${data[id].date}</small>
                             </div>
-                            <i class="fa-solid fa-trash" onclick="del('${id}')"></i>
+                            <div class="actions">
+                                <a href="${data[id].fileData}" download="${data[id].name}"><i class="fa-solid fa-download"></i></a>
+                                <i class="fa-solid fa-trash" onclick="del('${id}')"></i>
+                            </div>
                         </div>`;
                 }
             });
         }
 
+        function searchDocs() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.getElementsByClassName('item');
+            Array.from(items).forEach(item => {
+                const name = item.getAttribute('data-name');
+                item.style.display = name.includes(term) ? "flex" : "none";
+            });
+        }
+
         function del(id) {
-            if(confirm("Permanently delete this record?")) {
-                const uid = firebase.auth().currentUser.uid;
-                db.ref('users/'+uid+'/docs/'+id).remove();
+            if (confirm("Permanently delete this?")) {
+                db.ref('users/' + currentUser.uid + '/docs/' + id).remove();
             }
         }
 
-        function logout() {
-            firebase.auth().signOut().then(() => window.location.replace("index.html"));
-        }
+        function logout() { firebase.auth().signOut(); }
     </script>
 </body>
 </html>
+
 
