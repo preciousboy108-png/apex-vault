@@ -4,24 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apex Vault | Access</title>
-    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: #1e1e1e; padding: 30px; border-radius: 10px; width: 320px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #2a2a2a; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .toggle-link { margin-top: 15px; font-size: 13px; color: #007bff; cursor: pointer; display: block; }
-        #status { font-size: 13px; margin-top: 15px; font-weight: bold; }
+        body { font-family: 'Inter', sans-serif; background: #0f0f0f; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #1a1a1a; padding: 40px 30px; border-radius: 20px; width: 340px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 25px; letter-spacing: 1px; color: #007bff; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #007bff; box-shadow: 0 0 8px rgba(0, 123, 255, 0.2); }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #007bff, #00d4ff); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 15px; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); transition: 0.3s; }
+        button:active { transform: scale(0.98); }
+        .toggle-link { margin-top: 20px; font-size: 13px; color: #888; cursor: pointer; display: block; }
+        .toggle-link b { color: #007bff; }
+        #status { font-size: 13px; margin-top: 15px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 id="formTitle">Login</h2>
-        <input type="email" id="email" placeholder="Email">
+        <h2 id="formTitle">APEX VAULT</h2>
+        <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="password" placeholder="Password">
         <button id="mainBtn" onclick="handleAuth()">Access Vault</button>
-        <span class="toggle-link" id="toggleLink" onclick="toggleForm()">Need an account? Sign Up</span>
+        <span class="toggle-link" id="toggleLink" onclick="toggleForm()">New here? <b>Create Account</b></span>
         <p id="status"></p>
     </div>
 
@@ -43,9 +47,9 @@
 
         function toggleForm() {
             isLoginMode = !isLoginMode;
-            document.getElementById('formTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('formTitle').innerText = isLoginMode ? "APEX VAULT" : "JOIN THE VAULT";
             document.getElementById('mainBtn').innerText = isLoginMode ? "Access Vault" : "Create Account";
-            document.getElementById('toggleLink').innerText = isLoginMode ? "Need an account? Sign Up" : "Have an account? Login";
+            document.getElementById('toggleLink').innerHTML = isLoginMode ? "New here? <b>Create Account</b>" : "Have an account? <b>Login</b>";
         }
 
         function handleAuth() {
@@ -53,16 +57,21 @@
             const pass = document.getElementById('password').value;
             const status = document.getElementById('status');
 
-            if(!email || !pass) return status.innerText = "Fill all fields";
-            status.innerText = "Verifying...";
+            if(!email || !pass) {
+                status.style.color = "#ff4d4d";
+                return status.innerText = "Fields cannot be empty";
+            }
+            
+            status.style.color = "#007bff";
+            status.innerText = "Authenticating...";
 
             const auth = firebase.auth();
             const action = isLoginMode ? auth.signInWithEmailAndPassword(email, pass) : auth.createUserWithEmailAndPassword(email, pass);
 
             action.then(() => {
-                // This is the strong redirect
                 window.location.replace("dashboard.html");
             }).catch(err => {
+                status.style.color = "#ff4d4d";
                 status.innerText = err.message;
             });
         }
