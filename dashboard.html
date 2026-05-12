@@ -3,143 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Vault | Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Apex Vault</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0b0e11; color: white; margin: 0; padding: 20px; }
-        .nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
-        .nav b { font-size: 20px; color: #007bff; letter-spacing: 1px; }
-        .card { background: #1a1d21; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; background: #2b2f36; color: white; border: 1px solid #444; box-sizing: border-box; outline: none; }
-        .search-bar { background: #1a1d21; border: 1px solid #333; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; }
-        .search-bar input { background: transparent; border: none; color: white; width: 100%; outline: none; padding-left: 10px; }
-        button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:disabled { background: #444; }
-        .item { background: #1a1d21; padding: 15px; border-radius: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #007bff; }
-        .item-info b { display: block; font-size: 15px; color: #eee; }
-        .item-info small { color: #666; font-size: 11px; }
-        .actions a { color: #00d4ff; text-decoration: none; margin-right: 15px; font-size: 18px; }
-        .fa-trash { color: #ff4d4d; cursor: pointer; }
-        #status { font-size: 12px; color: #00d4ff; text-align: center; margin-top: 5px; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #00d4ff; margin-top: 0; text-align: center; }
+        input, button { display: block; width: 100%; margin: 12px 0; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background-color: #00d4ff; color: white; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #0099cc; }
+        #status { font-size: 0.9em; color: #0099cc; text-align: center; display: none; font-weight: bold; }
+        .file-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .file-info b { font-size: 1.1em; color: #222; }
+        .file-info small { color: #888; }
+        .view-btn { width: auto; padding: 6px 15px; margin: 0; font-size: 0.9em; }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <b>APEX VAULT</b>
-        <i class="fa-solid fa-right-from-bracket" onclick="logout()" style="cursor:pointer"></i>
-    </div>
-
-    <div class="search-bar">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" placeholder="Search your vault..." onkeyup="searchDocs()">
-    </div>
 
     <div class="card">
-        <input type="text" id="docName" placeholder="Document Name (e.g. FUTA EWM Notes)">
+        <h2>APEX VAULT</h2>
+        <input type="text" id="docName" placeholder="Document Name (e.g. FUTA EWM 201 Notes)">
         <input type="file" id="filePicker" accept=".pdf,image/*">
         <button id="uploadBtn" onclick="uploadToDatabase()">Secure to Cloud</button>
-        <div id="status">Converting & Uploading...</div>
+        <div id="status">Uploading to Vault...</div>
     </div>
 
+    <h3>Your Stored Files</h3>
     <div id="records"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- Firebase SDKs (Using Version 8 for easier mobile compatibility) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
+        // Your specific Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB-AsF-EtsHFRWnMjc3LQSD2UqaNxM2vXc",
             authDomain: "apex-vault-3f235.firebaseapp.com",
             databaseURL: "https://apex-vault-3f235-default-rtdb.firebaseio.com",
             projectId: "apex-vault-3f235",
-            storageBucket: "apex-vault-3f235.appspot.com",
+            storageBucket: "apex-vault-3f235.firebasestorage.app",
             messagingSenderId: "526402607684",
-            appId: "1:526402607684:web:6b32fea6ee28a7df0d3a11"
+            appId: "1:526402607684:web:6b32fea6ee28a7df0d3a11",
+            measurementId: "G-RKGYV47YFK"
         };
+
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        
+        // This is your unique folder name in the database
+        const userId = "Precious_Vault_User"; 
 
-        let currentUser = null;
-
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                load(user.uid);
-            } else {
-                window.location.replace("index.html");
-            }
-        });
-
+        // Function: Upload File as Base64 Text
         function uploadToDatabase() {
-            const file = document.getElementById('filePicker').files[0];
-            const name = document.getElementById('docName').value;
-            const btn = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('filePicker');
+            const docName = document.getElementById('docName').value;
             const status = document.getElementById('status');
 
-            if (!file || !name) return alert("Please add a name and select a file!");
-            if (file.size > 5 * 1024 * 1024) return alert("File too large! Keep it under 5MB.");
+            if (!fileInput.files[0] || !docName) {
+                alert("Please give the file a name and select a file!");
+                return;
+            }
 
-            btn.disabled = true;
-            status.style.display = "block";
-
+            const file = fileInput.files[0];
             const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                const base64Data = reader.result;
-                db.ref('users/' + currentUser.uid + '/docs').push({
-                    name: name,
-                    fileData: base64Data,
-                    date: new Date().toLocaleString()
+
+            status.style.display = "block";
+            status.innerText = "Processing file...";
+
+            reader.onload = function(e) {
+                const base64String = e.target.result;
+                
+                db.ref("uploads/" + userId).push({
+                    name: docName,
+                    fileData: base64String,
+                    timestamp: Date.now()
                 }).then(() => {
-                    btn.disabled = false;
-                    status.style.display = "none";
+                    status.innerText = "Success! Saved to Apex Vault.";
                     document.getElementById('docName').value = "";
-                    document.getElementById('filePicker').value = "";
+                    fileInput.value = "";
+                    setTimeout(() => { status.style.display = "none"; }, 3000);
+                }).catch((error) => {
+                    alert("Error: " + error.message);
+                    status.style.display = "none";
                 });
             };
+
+            reader.readAsDataURL(file);
         }
 
-        function load(uid) {
-            db.ref('users/' + uid + '/docs').on('value', snap => {
-                const data = snap.val();
-                const list = document.getElementById('records');
-                list.innerHTML = "";
-                for (let id in data) {
-                    list.innerHTML += `
-                        <div class="item" data-name="${data[id].name.toLowerCase()}">
-                            <div class="item-info">
-                                <b>📄 ${data[id].name}</b>
-                                <small>${data[id].date}</small>
-                            </div>
-                            <div class="actions">
-                                <a href="${data[id].fileData}" download="${data[id].name}"><i class="fa-solid fa-download"></i></a>
-                                <i class="fa-solid fa-trash" onclick="del('${id}')"></i>
+        // Function: Fetch and Display Files
+        function fetchRecords() {
+            db.ref("uploads/" + userId).on("value", (snapshot) => {
+                const recordsDiv = document.getElementById("records");
+                recordsDiv.innerHTML = ""; 
+                
+                if (!snapshot.exists()) {
+                    recordsDiv.innerHTML = "<p style='text-align:center; color:#999;'>No files stored yet.</p>";
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    recordsDiv.innerHTML += `
+                        <div class="card">
+                            <div class="file-list-item">
+                                <div class="file-info">
+                                    <b>${data.name}</b><br>
+                                    <small>Stored in Cloud</small>
+                                </div>
+                                <button class="view-btn" onclick="downloadFile('${data.fileData}', '${data.name}')">
+                                    View
+                                </button>
                             </div>
                         </div>`;
-                }
+                });
             });
         }
 
-        function searchDocs() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const items = document.getElementsByClassName('item');
-            Array.from(items).forEach(item => {
-                const name = item.getAttribute('data-name');
-                item.style.display = name.includes(term) ? "flex" : "none";
-            });
-        }
-
-        function del(id) {
-            if (confirm("Permanently delete this?")) {
-                db.ref('users/' + currentUser.uid + '/docs/' + id).remove();
+        // Function: Convert text back to a downloadable file
+        function downloadFile(base64, fileName) {
+            try {
+                const link = document.createElement("a");
+                link.href = base64; 
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                alert("Access Error: " + error.message);
             }
         }
 
-        function logout() { firebase.auth().signOut(); }
+        // Start fetching data when the page loads
+        fetchRecords();
     </script>
 </body>
 </html>
-
-
